@@ -2,45 +2,39 @@ package com.example.futuramaapptry2
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.futuramaapptry2.ui.theme.FuturamaAppTry2Theme
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.futuramaapptry2.ui.CharacterClickListener
+import com.example.futuramaapptry2.ui.CharactersAdapter
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), CharacterClickListener {
+
+    private lateinit var viewModel: MainViewModel
+    private lateinit var charactersAdapter: CharactersAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            FuturamaAppTry2Theme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
-            }
-        }
+        setContentView(R.layout.activity_main)
+        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+
+        setupRecyclerView()
+        viewModel.characters.observe(this, Observer { characters ->
+            charactersAdapter.updateCharacters(characters)
+        })
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    private fun setupRecyclerView() {
+        val characterList = findViewById<RecyclerView>(R.id.characterList)
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    FuturamaAppTry2Theme {
-        Greeting("Android")
+        charactersAdapter = CharactersAdapter(emptyList(), this)
+
+        characterList.adapter = charactersAdapter
+        characterList.layoutManager = LinearLayoutManager(this)
+    }
+
+
+    override fun onCharacterClicked(character: com.example.futuramaapptry2.api.Character) {
+        TODO("Not yet implemented")
     }
 }
