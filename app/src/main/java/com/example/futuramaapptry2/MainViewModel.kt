@@ -1,16 +1,32 @@
 package com.example.futuramaapptry2
 
+import android.app.Application
+import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.Room
+import androidx.room.Room.databaseBuilder
 import com.example.futuramaapptry2.api.ApiService
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.example.futuramaapptry2.api.Character
+import com.example.futuramaapptry2.db.AppDb
+import kotlin.math.log
 
-class MainViewModel: ViewModel() {
+class MainViewModel(application: Application) : AndroidViewModel(application) {
+    private var fetched = false;
+    private val db = Room.databaseBuilder(
+        application,
+        AppDb::class.java,
+        "futurama-db1"
+    ).build()
+
+    private val characterDao = db.characterDao()
+
     private val apiService: ApiService by lazy {
         Retrofit.Builder()
             .baseUrl("https://api.sampleapis.com/")
@@ -18,25 +34,22 @@ class MainViewModel: ViewModel() {
             .build()
             .create(ApiService::class.java)
     }
-    private val _characters = MutableLiveData<List<Character>>()
 
-    val characters: LiveData<List<Character>> = _characters
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is home Fragment"
-    }
-    val text: LiveData<String> = _text
+    val characters: LiveData<List<Character>> = characterDao.getAllCharacters()
 
     init {
-        fetchCharacters()
+        if (!fetched)
+            fetchCharacters()
     }
 
     private fun fetchCharacters() {
         viewModelScope.launch {
             try {
                 val response = apiService.getCharacters()
-                _characters.postValue(response)
+                characterDao.insertAll(response)
+                fetched = true;
             } catch (e: Exception) {
-                // Handle exceptions
+                Log.e("MainViewModel", "Error fetching characters", e)
             }
         }
     }
