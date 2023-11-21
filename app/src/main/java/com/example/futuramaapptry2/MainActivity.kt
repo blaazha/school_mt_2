@@ -1,5 +1,6 @@
 package com.example.futuramaapptry2
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.Observer
@@ -35,6 +36,9 @@ class MainActivity : ComponentActivity(), CharacterClickListener {
 
 
     override fun onCharacterClicked(character: com.example.futuramaapptry2.api.Character) {
-        TODO("Not yet implemented")
+        val intent = Intent(this, DetailsActivity::class.java).apply {
+            putExtra("characterKey", character)
+        }
+        startActivity(intent)
     }
 }
